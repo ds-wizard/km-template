@@ -1,0 +1,32 @@
+{
+  "uuid": "37a62e9d-f217-421a-9e8d-0892b0e628e6",
+  "name": "Generic KM-only export (PoC)",
+  "description": "Generic template for KM-only export (Proof of Concept)",
+  "allowedPackages": [
+    {
+      "orgId": null,
+      "kmId": null,
+      "minVersion": null,
+      "maxVersion": null
+    }
+  ],
+  "formats": [
+    {
+      "uuid": "cc645c4a-22d6-4f87-944e-25c9123913f0",
+      "name": "OPML Outline",
+      "shortName": "opml",
+      "icon": "far fa-file-code",
+      "color": "#f15a24",
+      "steps": [
+        {
+          "name": "jinja",
+          "options": {
+            "template": "template.opml.j2",
+            "content-type": "text/x-opml",
+            "extension": "opml"
+          }
+        }
+      ]
+    }
+  ]
+}
