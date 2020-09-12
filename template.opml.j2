@@ -1,6 +1,9 @@
 {%- set km = ctx.knowledgeModel -%}
 {%- macro renderAnswer(answer) %}
     <outline text="[A] {{answer.label|e}}">
+{%- if answer.advice %}
+      <outline text="{{answer.advice|e}}"></outline>
+{%- endif %}
 {%- for questionUuid in answer.followUpUuids %}
   {{ renderQuestion(km.entities.questions[questionUuid]) }}
 {%- endfor %}

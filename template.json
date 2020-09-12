@@ -1,6 +1,10 @@
 {
-  "uuid": "37a62e9d-f217-421a-9e8d-0892b0e628e6",
-  "name": "Generic KM-only export (PoC)",
+  "id": "dsw:km-opml:0.2.0",
+  "organizationId": "dsw",
+  "templateId": "km-opml",
+  "version": "0.2.0",
+  "name": "Generic KM in OPML (PoC)",
+  "metamodelVersion": 2,
   "description": "Generic template for KM-only export (Proof of Concept)",
   "allowedPackages": [
     {
