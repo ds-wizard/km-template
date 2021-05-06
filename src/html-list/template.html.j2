@@ -1,13 +1,14 @@
 {%- set km = ctx.knowledgeModel -%}
+{%- set pkg = ctx.package -%}
 {%- macro renderAnswer(answer) %}
-    <outline text="[A] {{answer.label|e}}">
-{%- if answer.advice %}
-      <outline text="{{answer.advice|e}}"></outline>
-{%- endif %}
+    <li text="answer" id="{{answer.uuid}}">
+      <div>[A] {{answer.label|e}} <small><code>{{answer.uuid}}</code></small></div>
+    <ol>
 {%- for questionUuid in answer.followUpUuids %}
   {{ renderQuestion(km.entities.questions[questionUuid]) }}
 {%- endfor %}
-    </outline>
+    </ol>
+    </li>
 {%- endmacro -%}
 {%- macro renderQuestion(question) %}
 {%- set qtype = "string" %}
@@ -26,35 +27,41 @@
 {%- elif question.questionType == "IntegrationQuestion" %}
 {%- set qtype = "integration" %}
 {%- endif %}
-    <outline text="[Q][{{qtype}}] {{question.title|e}}">
+    <li text="question" id="{{question.uuid}}">
+      <div>[Q][{{qtype}}] {{question.title|e}} <small><code>{{question.uuid}}</code></small></div>
 {%- if question.questionType == "OptionsQuestion" %}
+<ol>
 {%- for answerUuid in question.answerUuids %}
   {{ renderAnswer(km.entities.answers[answerUuid]) }}
 {%- endfor %}
+</ol>
 {%- elif question.questionType == "ListQuestion" %}
+<ol>
 {%- for questionUuid in question.itemTemplateQuestionUuids %}
   {{ renderQuestion(km.entities.questions[questionUuid]) }}
 {%- endfor %}
+</ol>
 {%- endif %}
-    </outline>
+    </li>
 {%- endmacro -%}
 {%- macro renderChapter(chapter) -%}
-    <outline text="{{chapter.title|e}}">
-{%- for questionUuid in chapter.questionUuids %}
-  {{ renderQuestion(km.entities.questions[questionUuid]) }}
-{%- endfor %}
-    </outline>
+    <h2 class="chapter" id="{{chapter.uuid}}">{{chapter.title|e}} <small><code>{{chapter.uuid}}</code></small></h2>
+    <ol>
+    {%- for questionUuid in chapter.questionUuids %}
+      {{ renderQuestion(km.entities.questions[questionUuid]) }}
+    {%- endfor %}
+    </ol>
 {%- endmacro -%}
-<?xml version="1.0" encoding="UTF-8"?>
-<opml version="1.0">
+<!DOCTYPE html>
+<html>
   <head>
-    <title>{{km.name}}</title>
+    <meta charset="UTF-8" />
+    <title>DSW KM: {{pkg.name|e}}</title>
   </head>
   <body>
-    <outline text="{{km.name|e}}">
-{%- for chapterUuid in km.chapterUuids %}
-{{ renderChapter(km.entities.chapters[chapterUuid]) }}
-{%- endfor %}
-    </outline>
+    <h1>{{pkg.name|e}} ({{pkg.id}})</h1>
+    {%- for chapterUuid in km.chapterUuids %}
+      {{ renderChapter(km.entities.chapters[chapterUuid]) }}
+    {%- endfor %}
   </body>
-</opml>
+</html>
