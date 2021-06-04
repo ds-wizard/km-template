@@ -1,0 +1,177 @@
+{%- set km = ctx.knowledgeModel -%}
+{%- set pkg = ctx.package -%}
+{%- macro renderChoice(choice, parent, pathPrefix, humanIdentifier) %}
+{%- set path = pathPrefix ~ "." ~ choice.uuid %}
+<tr class="choice" id="{{choice.uuid}}">
+  <td>{{humanIdentifier}}</td>
+  <td>{{choice.uuid}}</td>
+  <td class="cell-type">choice</td>
+  <td>{{choice.label|e}}</td>
+  <td></td>
+  <td></td>
+  <td></td>
+  <td>{{parent}}</td>
+  <td>{{path}}</td>
+</tr>
+{%- endmacro -%}
+{%- macro renderAnswer(answer, parent, pathPrefix, humanIdentifier) %}
+{%- set path = pathPrefix ~ "." ~ answer.uuid %}
+<tr class="answer" id="{{answer.uuid}}">
+  <td>{{humanIdentifier}}</td>
+  <td>{{answer.uuid}}</td>
+  <td class="cell-type">answer</td>
+  <td>{{answer.label|e}}</td>
+  <td>{{answer.advice|markdown}}</td>
+  <td></td>
+  <td>{{answer.followUpUuids|length}}</td>
+  <td>{{parent}}</td>
+  <td>{{path}}</td>
+</tr>
+{%- for questionUuid in answer.followUpUuids -%}
+{{ renderQuestion(km.entities.questions[questionUuid], answer.uuid, path, humanIdentifier ~ "." ~ loop.index) }}
+{%- endfor -%}
+{%- endmacro -%}
+{%- macro renderQuestion(question, parent, pathPrefix, humanIdentifier) %}
+{%- set path = pathPrefix ~ "." ~ question.uuid %}
+{%- set followups = 0 %}
+{%- set qtype = "string" %}
+{%- if question.questionType == "OptionsQuestion" %}
+{%- set followups = question.answers|length %}
+{%- set qtype = "options" %}
+{%- elif question.questionType == "ListQuestion" %}
+{%- set followups = question.itemTemplateQuestionUuids|length %}
+{%- set qtype = "list" %}
+{%- elif question.questionType == "ValueQuestion" %}
+  {%- if question.valueType == "TextQuestionValueType" %}
+    {%- set qtype = "text" %}
+  {%- elif question.valueType == "DateQuestionValueType" %}
+    {%- set qtype = "date" %}
+  {%- elif question.valueType == "NumberQuestionValueType" %}
+    {%- set qtype = "number" %}
+  {%- endif %}
+{%- elif question.questionType == "IntegrationQuestion" %}
+{%- set qtype = "integration" %}
+{%- elif question.questionType == "MultiChoiceQuestion" %}
+{%- set qtype = "multichoice" %}
+{%- endif %}
+<tr class="question" id="{{question.uuid}}">
+  <td>{{humanIdentifier}}</td>
+  <td>{{question.uuid}}</td>
+  <td class="cell-type">question</td>
+  <td>{{question.title|e}}</td>
+  <td>{{question.text|markdown}}</td>
+  <td>{{qtype}}</td>
+  <td>{{followups}}</td>
+  <td>{{parent}}</td>
+  <td>{{path}}</td>
+</tr>
+{%- if question.questionType == "OptionsQuestion" %}
+{%- for answerUuid in question.answerUuids -%}
+{{ renderAnswer(km.entities.answers[answerUuid], question.uuid, path, humanIdentifier ~ "." ~ loop.index|of_alphabet) }}
+{%- endfor %}
+{%- elif question.questionType == "MultiChoiceQuestion" %}
+{%- for choiceUuid in question.choiceUuids -%}
+{{ renderChoice(km.entities.choices[choiceUuid], question.uuid, path, humanIdentifier ~ "." ~ loop.index|of_alphabet) }}
+{%- endfor %}
+{%- elif question.questionType == "ListQuestion" %}
+{%- for questionUuid in question.itemTemplateQuestionUuids -%}
+{{ renderQuestion(km.entities.questions[questionUuid], question.uuid, path ~ ".{item}", humanIdentifier ~ "._." ~ loop.index) }}
+{%- endfor -%}
+{%- endif -%}
+{%- endmacro -%}
+{%- macro renderChapter(chapter, humanIdentifier) %}
+<tr class="chapter" id="{{chapter.uuid}}">
+  <td>{{humanIdentifier|roman}}</td>
+  <td>{{chapter.uuid}}</td>
+  <td class="cell-type">chapter</td>
+  <td>{{chapter.title|e}}</td>
+  <td>{{chapter.text|markdown}}</td>
+  <td></td>
+  <td>{{chapter.questionUuids|length}}</td>
+  <td>{{pkg.id}}</td>
+  <td>{{chapter.uuid}}</td>
+</tr>
+{%- for questionUuid in chapter.questionUuids -%}
+{{ renderQuestion(km.entities.questions[questionUuid], chapter.uuid, chapter.uuid, humanIdentifier|roman ~ "." ~ loop.index) }}
+{%- endfor -%}
+{%- endmacro -%}
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>DSW KM: {{pkg.name|e}}</title>
+    <style>
+      body {
+        font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+      }
+      #km-table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      #km-table td, #km-table th {
+        border: 1px solid #ddd;
+        padding: 8px;
+        overflow-wrap: break-word;
+      }
+      #km-table tr:nth-child(even) {
+        background-color: #f2f2f2;
+      }
+      #km-table tr:hover {
+        background-color: #ddd;
+      }
+      #km-table th {
+        padding-top: 12px;
+        padding-bottom: 12px;
+        text-align: left;
+        background-color: #F15A24;
+        color: white;
+      }
+      #km-table tr.chapter .cell-type {
+        color: #910079;
+      }
+      #km-table tr.chapter:hover {
+        background-color: #e3c1dd;
+      }
+      #km-table tr.question .cell-type {
+        color: #084b8a;
+      }
+      #km-table tr.question:hover {
+        background-color: #afc9e0;
+      }
+      #km-table tr.answer .cell-type {
+        color: #49940c;
+      }
+      #km-table tr.answer:hover {
+        background-color: #c1e6cb;
+      }
+      #km-table tr.choice .cell-type {
+        color: #a3670d;
+      }
+      #km-table tr.choice:hover {
+        background-color: #cfc0a9;
+      }
+    </style>
+  </head>
+  <body>
+    <table id="km-table">
+      <thead>
+        <tr>
+          <th>Identifier</th>
+          <th>UUID</th>
+          <th>Type</th>
+          <th>Title</th>
+          <th>Text</th>
+          <th>Subtype</th>
+          <th>Follow-ups</th>
+          <th>Parent UUID</th>
+          <th>Path</th>
+        </tr>
+      </thead>
+      <tbody>
+{%- for chapterUuid in km.chapterUuids -%}
+{{ renderChapter(km.entities.chapters[chapterUuid], loop.index) }}
+{%- endfor %}
+      </tbody>
+    </table>
+  </body>
+</html>

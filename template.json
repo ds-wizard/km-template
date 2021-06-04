@@ -1,7 +1,7 @@
 {
     "templateId": "km-insight",
     "organizationId": "dsw",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "name": "KM Insight",
     "description": "Explore the KM content in many ways",
     "license": "Apache-2.0",
@@ -18,7 +18,7 @@
     "formats": [
         {
             "uuid": "9ac0e163-e422-4714-94de-d4977edab94d",
-            "name": "HTML Nested List",
+            "name": "HTML List",
             "shortName": "html",
             "icon": "fas fa-file",
             "color": "#f15722",
@@ -27,6 +27,64 @@
                     "name": "jinja",
                     "options": {
                         "template": "src/html-list/template.html.j2",
+                        "content-type": "text/html",
+                        "extension": "html"
+                    }
+                }
+            ]
+        },
+        {
+            "uuid": "f4bd941a-dfbe-4226-a1fc-200fb5269311",
+            "name": "MS Word List",
+            "shortName": "docx",
+            "icon": "far fa-file-word",
+            "color": "#0991FF",
+            "steps": [
+                {
+                    "name": "jinja",
+                    "options": {
+                        "template": "src/html-list/template.html.j2",
+                        "content-type": "text/html",
+                        "extension": "html"
+                    }
+                },
+                {
+                    "name": "pandoc",
+                    "options": {
+                        "from": "html",
+                        "to": "docx"
+                    }
+                }
+            ]
+        },
+        {
+            "uuid": "9ac0e163-e422-4714-94de-d4977edab94f",
+            "name": "CSV Table",
+            "shortName": "csv",
+            "icon": "fas fa-csv",
+            "color": "#f15722",
+            "steps": [
+                {
+                    "name": "jinja",
+                    "options": {
+                        "template": "src/table/template.csv.j2",
+                        "content-type": "text/csv",
+                        "extension": "csv"
+                    }
+                }
+            ]
+        },
+        {
+            "uuid": "9ac0e163-e422-4714-94de-d4977edab95f",
+            "name": "HTML Table",
+            "shortName": "html",
+            "icon": "fas fa-file",
+            "color": "#f15722",
+            "steps": [
+                {
+                    "name": "jinja",
+                    "options": {
+                        "template": "src/table/template.html.j2",
                         "content-type": "text/html",
                         "extension": "html"
                     }

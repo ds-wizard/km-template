@@ -4,6 +4,12 @@ Explore the KM content in many ways
 
 ## Changelog
 
+### 0.2.0
+
+- Support multichoice questions
+- CSV and HTML table with UUID paths
+- HTML and Word with nested lists for chapters
+
 ### 0.1.0
 
 - Initial version of KM Insight template

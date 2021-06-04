@@ -1,0 +1,51 @@
+{%- set km = ctx.knowledgeModel -%}
+{%- set pkg = ctx.package -%}
+{%- macro renderAnswer(answer, parent, pathPrefix, humanIdentifier) %}
+{%- set path = pathPrefix ~ "." ~ answer.uuid %}
+{{humanIdentifier}},{{answer.uuid}},answer,{{answer.label|tojson}},{{answer.advice|tojson}},,{{answer.followUpUuids|length}},{{parent}},{{path}}
+{%- for questionUuid in answer.followUpUuids -%}
+{{ renderQuestion(km.entities.questions[questionUuid], answer.uuid, path, humanIdentifier ~ "." ~ loop.index) }}
+{%- endfor -%}
+{%- endmacro -%}
+{%- macro renderQuestion(question, parent, pathPrefix, humanIdentifier) %}
+{%- set path = pathPrefix ~ "." ~ question.uuid %}
+{%- set followups = 0 %}
+{%- set qtype = "string" %}
+{%- if question.questionType == "OptionsQuestion" %}
+{%- set followups = question.answers|length %}
+{%- set qtype = "options" %}
+{%- elif question.questionType == "ListQuestion" %}
+{%- set followups = question.itemTemplateQuestionUuids|length %}
+{%- set qtype = "list" %}
+{%- elif question.questionType == "ValueQuestion" %}
+  {%- if question.valueType == "TextQuestionValueType" %}
+    {%- set qtype = "text" %}
+  {%- elif question.valueType == "DateQuestionValueType" %}
+    {%- set qtype = "date" %}
+  {%- elif question.valueType == "NumberQuestionValueType" %}
+    {%- set qtype = "number" %}
+  {%- endif %}
+{%- elif question.questionType == "IntegrationQuestion" %}
+{%- set qtype = "integration" %}
+{%- endif %}
+{{humanIdentifier}},{{question.uuid}},question,{{question.title|tojson}},{{question.text|tojson}},{{qtype}},{{followups}},{{parent}},{{path}}
+{%- if question.questionType == "OptionsQuestion" %}
+{%- for answerUuid in question.answerUuids -%}
+{{ renderAnswer(km.entities.answers[answerUuid], question.uuid, path, humanIdentifier ~ "." ~ loop.index|of_alphabet) }}
+{%- endfor %}
+{%- elif question.questionType == "ListQuestion" %}
+{%- for questionUuid in question.itemTemplateQuestionUuids -%}
+{{ renderQuestion(km.entities.questions[questionUuid], question.uuid, path ~ ".{item}", humanIdentifier ~ "._." ~ loop.index) }}
+{%- endfor -%}
+{%- endif -%}
+{%- endmacro -%}
+{%- macro renderChapter(chapter, humanIdentifier) %}
+{{humanIdentifier|roman}},{{chapter.uuid}},chapter,{{chapter.title|tojson}},{{chapter.text|tojson}},,{{chapter.questionUuids|length}},{{pkg.id}},{{chapter.uuid}}
+{%- for questionUuid in chapter.questionUuids -%}
+{{ renderQuestion(km.entities.questions[questionUuid], chapter.uuid, chapter.uuid, humanIdentifier|roman ~ "." ~ loop.index) }}
+{%- endfor -%}
+{%- endmacro -%}
+humanIdentifier,uuid,type,title,description,subtype,followups,parent,path
+{%- for chapterUuid in km.chapterUuids -%}
+{{ renderChapter(km.entities.chapters[chapterUuid], loop.index) }}
+{%- endfor %}
