@@ -1,5 +1,57 @@
 {%- set km = ctx.knowledgeModel -%}
 {%- set pkg = ctx.package -%}
+{%- macro renderExpert(expert, parent, pathPrefix, humanIdentifier) %}
+{%- set path = pathPrefix ~ "." ~ expert.uuid %}
+<tr class="expert" id="{{expert.uuid}}">
+  <td>{{humanIdentifier}}</td>
+  <td>{{expert.uuid}}</td>
+  <td class="cell-type">expert</td>
+  <td>{{expert.name}}</td>
+  <td>{{expert.email}}</td>
+  <td></td>
+  <td></td>
+  <td>{{parent}}</td>
+  <td>{{path}}</td>
+</tr>
+{%- endmacro -%}
+{%- macro renderReference(reference, parent, pathPrefix, humanIdentifier) %}
+{%- set path = pathPrefix ~ "." ~ reference.uuid %}
+<tr class="reference" id="{{reference.uuid}}">
+  <td>{{humanIdentifier}}</td>
+  <td>{{reference.uuid}}</td>
+  <td class="cell-type">reference</td>
+  <td>
+    {%- if reference.referenceType == "URLReference" -%}
+      <a href="{{ reference.url }}" target="_blank">{{reference.label}}</a>
+    {%- elif reference.referenceType == "ResourcePageReference" -%}
+      <a href="{{ (ctx.config.clientUrl ~ "/book-references/" ~ reference.shortUuid) }}" target="_blank">{{reference.shortUuid}}</a>
+    {%- else -%}
+      {{ reference.targetUuid }}
+    {%- endif -%}
+  </td>
+  <td>
+    {%- if reference.referenceType == "URLReference" -%}
+      {{ reference.url }}
+    {%- elif reference.referenceType == "ResourcePageReference" -%}
+      {{ reference.shortUuid }}
+    {%- else -%}
+      {{ reference.targetUuid }}
+    {%- endif -%}
+  </td>
+  <td>
+    {%- if reference.referenceType == "URLReference" -%}
+      url
+    {%- elif reference.referenceType == "ResourcePageReference" -%}
+      resource-page
+    {%- else -%}
+      cross-reference
+    {%- endif -%}
+  </td>
+  <td></td>
+  <td>{{parent}}</td>
+  <td>{{path}}</td>
+</tr>
+{%- endmacro -%}
 {%- macro renderChoice(choice, parent, pathPrefix, humanIdentifier) %}
 {%- set path = pathPrefix ~ "." ~ choice.uuid %}
 <tr class="choice" id="{{choice.uuid}}">
@@ -65,6 +117,12 @@
   <td>{{parent}}</td>
   <td>{{path}}</td>
 </tr>
+{%- for expertUuid in question.expertUuids -%}
+{{ renderExpert(km.entities.experts[expertUuid], question.uuid, path, humanIdentifier ~ ".E-" ~ loop.index) }}
+{%- endfor %}
+{%- for referenceUuid in question.referenceUuids -%}
+{{ renderReference(km.entities.references[referenceUuid], question.uuid, path, humanIdentifier ~ ".R-" ~ loop.index) }}
+{%- endfor %}
 {%- if question.questionType == "OptionsQuestion" %}
 {%- for answerUuid in question.answerUuids -%}
 {{ renderAnswer(km.entities.answers[answerUuid], question.uuid, path, humanIdentifier ~ "." ~ loop.index|of_alphabet) }}
@@ -149,6 +207,18 @@
       }
       #km-table tr.choice:hover {
         background-color: #cfc0a9;
+      }
+      #km-table tr.reference .cell-type {
+        color: #016655;
+      }
+      #km-table tr.reference:hover {
+        background-color: #83e4dc;
+      }
+      #km-table tr.expert .cell-type {
+        color: #848d05;
+      }
+      #km-table tr.expert:hover {
+        background-color: #f8ff9d;
       }
     </style>
   </head>

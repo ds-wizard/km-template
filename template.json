@@ -1,7 +1,7 @@
 {
     "templateId": "km-insight",
     "organizationId": "dsw",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "name": "KM Insight",
     "description": "Explore the KM content in many ways",
     "license": "Apache-2.0",

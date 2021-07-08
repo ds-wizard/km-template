@@ -4,6 +4,11 @@ Explore the KM content in many ways
 
 ## Changelog
 
+### 0.3.0
+
+- Support for references and experts in tables
+- Support for references, experts, tags, and integrations in list
+
 ### 0.2.0
 
 - Support multichoice questions
