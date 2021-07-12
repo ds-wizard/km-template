@@ -1,0 +1,218 @@
+{%- set km = ctx.knowledgeModel -%}
+{%- set pkg = ctx.package -%}
+{%- macro renderIntegration(integration) -%}
+  <h3>{{integration.name}}</h3>
+
+  <ul>
+    <li><em>UUID:</em> {{integration.uuid}}</li>
+    <li><em>ID:</em> {{integration.id}}</li>
+    <li><em>Logo:</em> {% if integration.logo != "" %}<img style="max-height: 50px;" src="{{ integration.logo }}" alt="{{ integration.name }}" />{% endif %}</li>
+    <li><em>Props:</em> {{integration.props|join(", ")}}</li>
+    <li><em>Item URL:</em> {{integration.itemUrl}}</li>
+    <li><em>Request:</em>
+      <ul>
+        <li><em>Method:</em> {{integration.requestMethod}}</li>
+        <li><em>URL:</em> {{integration.requestMethod}}</li>
+        <li><em>Headers:</em> <pre>{{integration.requestHeaders|tojson(4)}}</pre></li>
+        <li><em>Body:</em> <pre>{{integration.requestBody}}</pre></li>
+      </ul>
+    </li>
+    <li><em>Response:</em>
+      <ul>
+        <li><em>List field:</em> {{integration.responseListField}}</li>
+        <li><em>ID field:</em> {{integration.responseIdField}}</li>
+        <li><em>Name field:</em> {{integration.responseNameField}}</li>
+      </ul>
+    </li>
+  </ul>
+{%- endmacro -%}
+{%- macro renderFullTag(tag) -%}
+    <li class="tag" id="{{tag.uuid}}">
+      {{tag.name|e}} (<code>{{tag.uuid}}</code>)<br/>
+      <em>Color:</em> {{tag.color}} (<span style="color: {{tag.color}};">{{tag.color}}</span>)<br/>
+      <em>Description:</em> {{tag.description|markdown}}
+    </li>
+{%- endmacro -%}
+{%- macro renderExpert(expert) %}
+    <li class="expert" id="{{expert.uuid}}">
+      {{expert.name|e}} <a href="mailto:{{expert.email}}">{{expert.email}}</a> (<code>{{expert.uuid}}</code>)
+    </li>
+{%- endmacro -%}
+{%- macro renderReference(reference) %}
+{%- if reference.referenceType == "URLReference" -%}
+  <li class="reference resource-page" id="{{reference.uuid}}">
+    <a href="{{ reference.url }}" target="_blank">{{reference.label}}</a> (<code>{{reference.uuid}}</code>)
+  </li>
+{%- elif reference.referenceType == "ResourcePageReference" -%}
+  <li class="reference resource-page" id="{{reference.uuid}}">
+    <a href="{{ (ctx.config.clientUrl ~ "/book-references/" ~ reference.shortUuid) }}" target="_blank">{{reference.shortUuid}}</a> (<code>{{reference.uuid}}</code>)
+  </li>
+{%- else -%}
+  <li class="reference cross-reference" id="{{reference.uuid}}">
+    {{reference.targetUuid}}</strong> (<code>{{reference.uuid}}</code>)
+  </li>
+{%- endif -%}
+{%- endmacro -%}
+{%- macro renderTag(tag) %}
+    <li class="tag" id="{{tag.uuid}}">
+      {{tag.name|e}} (<code>{{tag.uuid}}</code>)
+    </li>
+{%- endmacro -%}
+{%- macro renderChoice(choice, humanIdentifier) %}
+    <li class="choice" id="{{choice.uuid}}">
+      <strong>{{choice.label|e}}</strong><br/>
+      <em>Identifier:</em> {{humanIdentifier}} (<code>{{choice.uuid}}</code>)<br/>
+    </li>
+{%- endmacro -%}
+{%- macro renderAnswer(answer, humanIdentifier) %}
+    <li class="answer" id="{{answer.uuid}}">
+      <strong>{{answer.label|e}}</strong><br/>
+      <em>Identifier:</em> {{humanIdentifier}} (<code>{{answer.uuid}}</code>)<br/>
+      {% if answer.advice and answer.advice|length > 0 %}
+        <em>Advice:</em> {{ answer.advice|markdown }}
+      {% endif %}
+      {# TODO: metrics? #}
+{%- if answer.followUpUuids|length > 0 %}
+      <em>Followup questions:</em>
+      <ol>
+{%- for questionUuid in answer.followUpUuids %}
+  {{ renderQuestion(km.entities.questions[questionUuid], humanIdentifier ~ "." ~ loop.index) }}
+{%- endfor %}
+      </ol>
+{% endif %}
+    </li>
+{%- endmacro -%}
+{%- macro renderQuestion(question, humanIdentifier) %}
+{%- set qtype = "value (string)" %}
+{%- if question.questionType == "OptionsQuestion" %}
+{%- set qtype = "options" %}
+{%- elif question.questionType == "ListQuestion" %}
+{%- set qtype = "list" %}
+{%- elif question.questionType == "ValueQuestion" %}
+  {%- if question.valueType == "TextQuestionValueType" %}
+    {%- set qtype = "value (text)" %}
+  {%- elif question.valueType == "DateQuestionValueType" %}
+    {%- set qtype = "value (date)" %}
+  {%- elif question.valueType == "NumberQuestionValueType" %}
+    {%- set qtype = "value (number)" %}
+  {%- endif %}
+{%- elif question.questionType == "IntegrationQuestion" %}
+{%- set qtype = "integration" %}
+{%- elif question.questionType == "MultiChoiceQuestion" %}
+{%- set qtype = "multichoice" %}
+{%- endif %}
+    <li class="question" id="{{question.uuid}}">
+      <strong>{{question.title|e}}</strong> [{{qtype}}]<br/>
+      <em>Identifier:</em> {{humanIdentifier}} (<code>{{question.uuid}}</code>)<br/>
+      {% if qtype == "integration" %}
+        {% set integration = km.entities.integrations[question.integrationUuid] %}
+        <em>Integration:</em> {{integration.name|e}} (<code>{{question.integrationUuid}}</code>)<br/>
+      {% endif %}
+      {# TODO: phase? #}
+      {% if question.text and question.text|length > 0 %}
+        {{ question.text|markdown }}
+      {% endif %}
+
+<em>Tags [{{question.tagUuids|length}}]:</em>
+<ol>
+{%- for tagUuid in question.tagUuids %}
+  {{ renderTag(km.entities.tags[tagUuid]) }}
+{%- endfor -%}
+</ol>
+<em>References [{{question.referenceUuids|length}}]:</em>
+<ol>
+{%- for referenceUuid in question.referenceUuids %}
+  {{ renderReference(km.entities.references[referenceUuid]) }}
+{%- endfor -%}
+</ol>
+<em>Experts [{{question.expertUuids|length}}]:</em>
+<ol>
+{%- for expertUuid in question.expertUuids %}
+  {{ renderExpert(km.entities.experts[expertUuid]) }}
+{%- endfor -%}
+</ol>
+
+{%- if question.questionType == "OptionsQuestion" %}
+      <em>Answer options [{{question.answerUuids|length}}]:</em>
+<ol>
+{%- for answerUuid in question.answerUuids %}
+  {{ renderAnswer(km.entities.answers[answerUuid], humanIdentifier ~ "." ~ loop.index|of_alphabet) }}
+{%- endfor %}
+</ol>
+{%- elif question.questionType == "MultiChoiceQuestion" %}
+      <em>Answer choices [{{question.choiceUuids|length}}]:</em>
+<ol>
+{%- for choiceUuid in question.choiceUuids %}
+  {{ renderChoice(km.entities.choices[choiceUuid], humanIdentifier ~ "." ~ loop.index|of_alphabet) }}
+{%- endfor %}
+</ol>
+{%- elif question.questionType == "ListQuestion" %}
+      <em>Followup questions (per item) [{{question.itemTemplateQuestionUuids|length}}]:</em>
+<ol>
+{%- for questionUuid in question.itemTemplateQuestionUuids %}
+  {{ renderQuestion(km.entities.questions[questionUuid], humanIdentifier ~ "._." ~ loop.index) }}
+{%- endfor %}
+</ol>
+{%- endif %}
+    </li>
+{%- endmacro -%}
+{%- macro renderChapter(chapter, humanIdentifier) -%}
+    <h3 class="chapter" id="{{chapter.uuid}}">{{humanIdentifier|roman}}. {{chapter.title|e}}</h3>
+    <em>Identifier:</em> {{humanIdentifier|roman}} (<code>{{chapter.uuid}}</code>)<br/>
+    {% if chapter.text and chapter.text|length > 0 %}
+      {{ chapter.text|markdown }}
+    {% endif %}
+    <em>Questions [{{chapter.questionUuids|length}}]:</em>
+    <ol>
+    {%- for questionUuid in chapter.questionUuids %}
+      {{ renderQuestion(km.entities.questions[questionUuid], humanIdentifier|roman ~ "." ~ loop.index) }}
+    {%- endfor %}
+    </ol>
+{%- endmacro -%}
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>DSW KM: {{pkg.name|e}}</title>
+    <style>
+      body {
+        font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+      }
+      p {
+        margin: 0;
+      }
+      li.question {
+        margin-bottom: 0.5em;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>{{pkg.name|e}}</h1>
+    <em>Identifier:</em> <code>{{pkg.id}}</code><br/>
+    <em>Published:</em> {{pkg.createdAt|datetime_format("%d %b %Y %H:%M:%S")}}<br/>
+    <p class="description">{{pkg.description}}</p>
+
+    <h2>Chapters</h2>
+    
+    {%- for chapterUuid in km.chapterUuids %}
+      {{ renderChapter(km.entities.chapters[chapterUuid], loop.index) }}
+    {%- endfor %}
+
+    <h2>Tags</h2>
+
+    <ul>
+    {%- for tagUuid in km.tagUuids %}
+      {{ renderFullTag(km.entities.tags[tagUuid]) }}
+    {%- endfor %}
+    </ul>
+
+    <h2>Integrations</h2>
+
+    {%- for integrationUuid in km.integrationUuids %}
+      {{ renderIntegration(km.entities.integrations[integrationUuid]) }}
+    {%- endfor %}
+
+    <hr />
+    <center>Generated from DSW using <code>dsw:km-insight:0.2.0</code> template</center>
+  </body>
+</html>

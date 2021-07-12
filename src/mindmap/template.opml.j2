@@ -1,4 +1,8 @@
 {%- set km = ctx.knowledgeModel -%}
+{%- set pkg = ctx.package -%}
+{%- macro renderChoice(choice) %}
+    <outline text="[X] {{choice.label|e}}"></outline>
+{%- endmacro -%}
 {%- macro renderAnswer(answer) %}
     <outline text="[A] {{answer.label|e}}">
 {%- if answer.advice %}
@@ -25,11 +29,17 @@
   {%- endif %}
 {%- elif question.questionType == "IntegrationQuestion" %}
 {%- set qtype = "integration" %}
+{%- elif question.questionType == "MultiChoiceQuestion" %}
+{%- set qtype = "multichoice" %}
 {%- endif %}
     <outline text="[Q][{{qtype}}] {{question.title|e}}">
 {%- if question.questionType == "OptionsQuestion" %}
 {%- for answerUuid in question.answerUuids %}
   {{ renderAnswer(km.entities.answers[answerUuid]) }}
+{%- endfor %}
+{%- elif question.questionType == "MultiChoiceQuestion" %}
+{%- for choiceUuid in question.choiceUuids %}
+  {{ renderChoice(km.entities.choices[choiceUuid]) }}
 {%- endfor %}
 {%- elif question.questionType == "ListQuestion" %}
 {%- for questionUuid in question.itemTemplateQuestionUuids %}
@@ -48,10 +58,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <opml version="1.0">
   <head>
-    <title>{{km.name}}</title>
+    <title>{{pkg.name}}</title>
   </head>
   <body>
-    <outline text="{{km.name|e}}">
+    <outline text="{{pkg.name|e}}">
 {%- for chapterUuid in km.chapterUuids %}
 {{ renderChapter(km.entities.chapters[chapterUuid]) }}
 {%- endfor %}

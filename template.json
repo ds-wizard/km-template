@@ -1,36 +1,119 @@
 {
-  "id": "dsw:km-opml:0.2.0",
-  "organizationId": "dsw",
-  "templateId": "km-opml",
-  "version": "0.2.0",
-  "name": "Generic KM in OPML (PoC)",
-  "metamodelVersion": 2,
-  "description": "Generic template for KM-only export (Proof of Concept)",
-  "allowedPackages": [
-    {
-      "orgId": null,
-      "kmId": null,
-      "minVersion": null,
-      "maxVersion": null
-    }
-  ],
-  "formats": [
-    {
-      "uuid": "cc645c4a-22d6-4f87-944e-25c9123913f0",
-      "name": "OPML Outline",
-      "shortName": "opml",
-      "icon": "far fa-file-code",
-      "color": "#f15a24",
-      "steps": [
+    "templateId": "km-insight",
+    "organizationId": "dsw",
+    "version": "0.3.0",
+    "name": "KM Insight",
+    "description": "Explore the KM content in many ways",
+    "license": "Apache-2.0",
+    "metamodelVersion": 3,
+    "recommendedPackageId": null,
+    "allowedPackages": [
         {
-          "name": "jinja",
-          "options": {
-            "template": "template.opml.j2",
-            "content-type": "text/x-opml",
-            "extension": "opml"
-          }
+            "orgId": null,
+            "kmId": null,
+            "minVersion": null,
+            "maxVersion": null
         }
-      ]
+    ],
+    "formats": [
+        {
+            "uuid": "9ac0e163-e422-4714-94de-d4977edab94d",
+            "name": "HTML List",
+            "shortName": "html",
+            "icon": "fas fa-file",
+            "color": "#f15722",
+            "steps": [
+                {
+                    "name": "jinja",
+                    "options": {
+                        "template": "src/html-list/template.html.j2",
+                        "content-type": "text/html",
+                        "extension": "html"
+                    }
+                }
+            ]
+        },
+        {
+            "uuid": "f4bd941a-dfbe-4226-a1fc-200fb5269311",
+            "name": "MS Word List",
+            "shortName": "docx",
+            "icon": "far fa-file-word",
+            "color": "#0991FF",
+            "steps": [
+                {
+                    "name": "jinja",
+                    "options": {
+                        "template": "src/html-list/template.html.j2",
+                        "content-type": "text/html",
+                        "extension": "html"
+                    }
+                },
+                {
+                    "name": "pandoc",
+                    "options": {
+                        "from": "html",
+                        "to": "docx"
+                    }
+                }
+            ]
+        },
+        {
+            "uuid": "9ac0e163-e422-4714-94de-d4977edab94f",
+            "name": "CSV Table",
+            "shortName": "csv",
+            "icon": "fas fa-csv",
+            "color": "#f15722",
+            "steps": [
+                {
+                    "name": "jinja",
+                    "options": {
+                        "template": "src/table/template.csv.j2",
+                        "content-type": "text/csv",
+                        "extension": "csv"
+                    }
+                }
+            ]
+        },
+        {
+            "uuid": "9ac0e163-e422-4714-94de-d4977edab95f",
+            "name": "HTML Table",
+            "shortName": "html",
+            "icon": "fas fa-file",
+            "color": "#f15722",
+            "steps": [
+                {
+                    "name": "jinja",
+                    "options": {
+                        "template": "src/table/template.html.j2",
+                        "content-type": "text/html",
+                        "extension": "html"
+                    }
+                }
+            ]
+        },
+        {
+        "uuid": "cc645c4a-22d6-4f87-944e-25c9123913f0",
+        "name": "OPML Outline",
+        "shortName": "opml",
+        "icon": "far fa-file-code",
+        "color": "#f15a24",
+        "steps": [
+            {
+            "name": "jinja",
+            "options": {
+                "template": "src/mindmap/template.opml.j2",
+                "content-type": "text/x-opml",
+                "extension": "opml"
+            }
+            }
+        ]
+        }
+    ],
+    "_tdk": {
+        "version": "2.14.0",
+        "readmeFile": "README.md",
+        "files": [
+            "src/**/*"
+        ]
     }
-  ]
 }
